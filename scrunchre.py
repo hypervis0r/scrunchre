@@ -80,6 +80,7 @@ def main():
         with open(args.file, "w") as out_file:
             for i in itertools.product(*iters):
                 out_file.write("".join(i) + "\n")
+        print("[+] Created file {}".format(args.file))
     else:
         for i in itertools.product(*iters):
             print "".join(i)
