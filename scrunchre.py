@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
 # Copyright 2013 Martin Planer
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 # 	http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,6 +15,7 @@
 # limitations under the License.
 
 from sre_parse import *
+import argparse
 import itertools
 
 def re_iter(t):
@@ -29,12 +30,12 @@ def re_iter(t):
 
 def literal_iter(s):
 	return iter(chr(s))
-	
+
 def in_iter(spec):
 	return iter(spec_list(spec))
-		
+
 def maxrepeat_iter(spec):
-	# (0, 2, [('in', [('range', (97, 99))])])
+        # (0, 2, [('in', [('range', (97, 99))])])
 	min = spec[0]
 	max = spec[1]
 	if spec[2][0][0] == IN:
@@ -46,7 +47,7 @@ def maxrepeat_iter(spec):
 	for it in iters:
 	        for element in it:
 	            yield "".join(element)
-	
+
 def spec_list(l):
 	all = []
 	for i in l:
@@ -58,15 +59,30 @@ def spec_list(l):
 			all.extend(map(chr, range(spec[0], spec[1]+1)))
 	return all
 
-if len(sys.argv) < 2:
-	sys.stderr.write("Missing regex pattern!\nUsage: recrunch.py \"<pattern>\"\n")
-	exit()
-	
-pattern_string = sys.argv[1]
+def getArgs():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("regex",
+                        help="Regex Pattern to use")
+    parser.add_argument("-f", "--file",
+                        help="Save result to a file")
+    args = parser.parse_args()
+    return args
 
-pattern = parse(pattern_string)
+def main():
+    args = getArgs()
+    pattern_string = args.regex
 
-iters = map(lambda x: re_iter(x), pattern)
+    pattern = parse(pattern_string)
 
-for i in itertools.product(*iters):
-	print "".join(i)
+    iters = map(lambda x: re_iter(x), pattern)
+
+    if args.file:
+        with open(args.file, "w") as out_file:
+            for i in itertools.product(*iters):
+                out_file.write("".join(i) + "\n")
+    else:
+        for i in itertools.product(*iters):
+            print "".join(i)
+
+if __name__ == "__main__":
+    main()
